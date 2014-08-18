@@ -6,8 +6,16 @@
 # Eclipse
 .classpath
 .project
+/eclipse/.metadata
 /.settings
 /bin
 
 # Mac Stuff
 .DS_Store
+
+# Forge Stuff
+eclipse/logs
+eclipse/saves
+eclipse/config
+eclipse/crash-reports
+eclipse/options.txt
