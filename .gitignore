@@ -1,0 +1,13 @@
+# ForgeGradle
+/build
+/run
+/.gradle
+
+# Eclipse
+.classpath
+.project
+/.settings
+/bin
+
+# Mac Stuff
+.DS_Store
