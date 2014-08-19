@@ -4,9 +4,6 @@ import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.Vector;
-
-import com.sun.istack.internal.logging.Logger;
-
 import scala.reflect.internal.Trees.This;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
@@ -45,7 +42,6 @@ public class MobLoot
 {
     public static final String MODID = "mobloot";
     public static final String VERSION = "1.0";
-    public static Logger log;
     @Instance(MODID)
     public static MobLoot instance;
     @SidedProxy(modId=MODID, clientSide="com.julianscode.mobloot.ClientProxy")
@@ -64,7 +60,6 @@ public class MobLoot
     public void init(FMLInitializationEvent event)
     {    	
     	//initialize logger
-    	log = Logger.getLogger("MobLoot", this.getClass());
     	
     	//initialize event handler
     	MinecraftForge.EVENT_BUS.register(this);

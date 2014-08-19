@@ -19,10 +19,8 @@ public class MobLootGenerator {
 		if(MobLoot.config.shouldBeAffectedByLootingLevel) {
 			adjustedLootingLevel = lootingLevel*0.05f + 1.0f;
 		}
-		MobLoot.instance.log.info(""+adjustedLootingLevel);
 		for(ItemStack is: possibleLoot.keySet()) {
 			float randNum = r.nextFloat()*1000.0f;
-			MobLoot.instance.log.info(possibleLoot.get(is)*adjustedLootingLevel+"->"+randNum);
 			if(possibleLoot.get(is)*adjustedLootingLevel>=randNum) {
 				items.add(is);
 			}
