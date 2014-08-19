@@ -1,7 +1,9 @@
 package com.julianscode.mobloot;
 
+import java.net.MalformedURLException;
+
 public class CommonProxy {
-	public void registerConfigs() {
+	public void registerConfigs() throws MalformedURLException {
 		
 	}
 }

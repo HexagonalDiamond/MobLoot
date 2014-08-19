@@ -1,5 +1,6 @@
 package com.julianscode.mobloot;
 
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.Vector;
@@ -52,7 +53,7 @@ public class MobLoot
     public static MobLootConfigManager config;
     public static MobLootGenerator lootGen;
     @EventHandler
-    public void preinit(FMLPreInitializationEvent event) {
+    public void preinit(FMLPreInitializationEvent event) throws MalformedURLException {
     	config = new MobLootConfigManager(event);
     	lootGen = new MobLootGenerator();
     	lootGen.loadFromConfig();
