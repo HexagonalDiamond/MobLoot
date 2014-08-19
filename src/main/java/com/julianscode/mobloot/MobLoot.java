@@ -1,18 +1,31 @@
 package com.julianscode.mobloot;
 
+import java.util.ArrayList;
 import java.util.Random;
+import java.util.Vector;
 
 import com.sun.istack.internal.logging.Logger;
 
 import scala.reflect.internal.Trees.This;
 import net.minecraft.init.Blocks;
+import net.minecraft.init.Items;
+import net.minecraft.inventory.IInventory;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.Vec3;
+import net.minecraft.util.WeightedRandomChestContent;
 import net.minecraft.world.World;
+import net.minecraftforge.common.ChestGenHooks;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
+import net.minecraftforge.event.entity.living.LivingDropsEvent;
+import net.minecraftforge.event.entity.player.AttackEntityEvent;
+import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
+import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.player.EntityPlayer;
 import cpw.mods.fml.common.FMLLog;
@@ -29,21 +42,13 @@ public class MobLoot
 {
     public static final String MODID = "mobloot";
     public static final String VERSION = "1.0";
-    public Logger log;
+    public static Logger log;
     @Instance(MODID)
     public static MobLoot instance;
-    @SidedProxy(clientSide="com.julianscode.mobloot.ClientProxy", serverSide="com.julianscode.mobloot.CommonProxy")
-    public static CommonProxy proxy;
     
     @EventHandler
     public void init(FMLInitializationEvent event)
-    {
-    	//register dead mob class
-    	registerEntity(EntityDeadMob.class, "entityDeadMob");
-    	
-    	//register renderers
-    	proxy.registerRenderers();
-    	
+    {    	
     	//initialize logger
     	log = Logger.getLogger("MobLoot", this.getClass());
     	
@@ -51,15 +56,57 @@ public class MobLoot
     	MinecraftForge.EVENT_BUS.register(this);
     }
     
-    private void spawnDeadZombie(double x, double y, double z, World w, Entity e) {
-    	EntityDeadMob deadMobEntity = new EntityDeadMob(w);
-    	deadMobEntity.posX = x;
-    	deadMobEntity.posY = y;
-    	deadMobEntity.posZ = z;
-    	deadMobEntity.entityToDisplay = e;
-    	e.setAlive();
-    	w.spawnEntityInWorld(deadMobEntity);
+    public static void spawnChest(World w, double x, double y, double z, ArrayList<ItemStack> arrayList) {
+    	Vec3 block = findNearestOpenBlock(w, x, y, z, 5);
+    	w.setBlock((int)block.xCoord, (int)block.yCoord, (int)block.zCoord, Blocks.chest);
+    	fillChestWithLoot(w, (int)block.xCoord, (int)block.yCoord, (int)block.zCoord, arrayList);
     }
+    
+    public static void fillChestWithLoot(World w, int x, int y, int z, ArrayList<ItemStack> arrayList) {
+    	for(ItemStack is: arrayList) {
+    		placeInRandomSlot(w, x, y, z, is);
+    	}
+    	for(int looper = 0; looper <= 5; looper=looper+1) {
+	    	placeInRandomSlot(w, x, y, z, new ItemStack(Items.iron_ingot, 20));
+    	}
+    }
+    
+    public static void placeInRandomSlot(World w, int x, int y, int z, ItemStack is) {
+    	IInventory te = (IInventory) w.getTileEntity(x, y, z);
+    	Random r = new Random();
+    	int slot = r.nextInt(27);
+    	log.info("Placing "+is.getDisplayName()+" in slot "+slot);
+    	if(te.getStackInSlot(slot)==null) {
+    		te.setInventorySlotContents(r.nextInt(27), is);
+    	} else {
+    		placeInRandomSlot(w, x, y, z, is);
+    	}
+    }
+    
+    public static Vec3 findNearestOpenBlock(World w, double x, double y, double z, double maxRange) {
+    	int ix = (int) x;
+    	int iy = (int) y;
+    	int iz = (int) z;
+    	for(int distance = 0; distance < maxRange; distance++) {
+    		for(int checkX = ix - distance; checkX < ix + distance; checkX++) {
+    			for(int checkY = iy - distance; checkY < iy + distance; checkY++) {
+    				for(int checkZ = iz - distance; checkZ < iz + distance; checkZ++) {
+    					if(canPlaceLoot(w, checkX, checkY, checkZ)) {
+    						return Vec3.createVectorHelper(checkX, checkY, checkZ);
+    					}
+    				}
+    			}
+    		}
+    	}
+		return null;
+    }
+    
+    public static boolean canPlaceLoot(World world, int x, int y, int z) {
+		if (!world.blockExists(x, y, z)) return false;
+
+		Block block = world.getBlock(x, y, z);
+		return (block.isAir(world, x, y, z) || block.isReplaceable(world, x, y, z));
+	}
     
     public static void registerEntity(Class entityClass, String name) {
     	int entityID = EntityRegistry.findGlobalUniqueEntityId();
@@ -70,16 +117,19 @@ public class MobLoot
     	EntityRegistry.registerModEntity(entityClass, name, entityID, instance, 64, 1, true);
     }
     
+    public static ArrayList<ItemStack> convertToItemStack(ArrayList<EntityItem> al) {
+    	ArrayList<ItemStack> is = new ArrayList<ItemStack>();
+    	for(EntityItem ei: al) {
+    		is.add(ei.getEntityItem());
+    	}
+		return is;
+    }
+    
     @SubscribeEvent
-    public void onLivingDeathEvent(LivingDeathEvent event) {
-    	
-    	if(event.entityLiving instanceof EntityMob && event.source.getEntity() instanceof EntityPlayer) {
-    		log.info("Killed Hostile Mob ");
-    		double x = event.entityLiving.posX;
-    		double y = event.entityLiving.posY;
-    		double z = event.entityLiving.posZ;
-    		World w = event.entityLiving.worldObj;
-    		this.spawnDeadZombie(x, y, z, w, (Entity) event.entityLiving);
+    public void onDropsEvent(LivingDropsEvent event) {
+    	event.setCanceled(true);
+    	if(event.source.getEntity() instanceof EntityPlayer && event.entity instanceof EntityLiving) {
+    		this.spawnChest(event.entity.worldObj, event.entity.posX, event.entity.posY, event.entity.posZ, convertToItemStack(event.drops));
     	}
     }
 }
