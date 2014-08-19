@@ -34,6 +34,8 @@ import cpw.mods.fml.common.Mod.EventHandler;
 import cpw.mods.fml.common.Mod.Instance;
 import cpw.mods.fml.common.SidedProxy;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
+import cpw.mods.fml.common.event.FMLPostInitializationEvent;
+import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.registry.EntityRegistry;
 
@@ -45,6 +47,14 @@ public class MobLoot
     public static Logger log;
     @Instance(MODID)
     public static MobLoot instance;
+    public static MobLootConfigManager config;
+    public static MobLootGenerator lootGen;
+    @EventHandler
+    public void preinit(FMLPreInitializationEvent event) {
+    	config = new MobLootConfigManager(event);
+    	lootGen = new MobLootGenerator();
+    	lootGen.loadFromConfig();
+    }
     
     @EventHandler
     public void init(FMLInitializationEvent event)
@@ -55,19 +65,19 @@ public class MobLoot
     	//initialize event handler
     	MinecraftForge.EVENT_BUS.register(this);
     }
-    
-    public static void spawnChest(World w, double x, double y, double z, ArrayList<ItemStack> arrayList) {
+    public static void spawnChest(World w, double x, double y, double z, ArrayList<ItemStack> arrayList, int lootingLevel) {
     	Vec3 block = findNearestOpenBlock(w, x, y, z, 5);
     	w.setBlock((int)block.xCoord, (int)block.yCoord, (int)block.zCoord, Blocks.chest);
-    	fillChestWithLoot(w, (int)block.xCoord, (int)block.yCoord, (int)block.zCoord, arrayList);
+    	fillChestWithLoot(w, (int)block.xCoord, (int)block.yCoord, (int)block.zCoord, arrayList, lootingLevel);
     }
     
-    public static void fillChestWithLoot(World w, int x, int y, int z, ArrayList<ItemStack> arrayList) {
+    public static void fillChestWithLoot(World w, int x, int y, int z, ArrayList<ItemStack> arrayList, int lootingLevel) {
     	for(ItemStack is: arrayList) {
     		placeInRandomSlot(w, x, y, z, is);
     	}
-    	for(int looper = 0; looper <= 5; looper=looper+1) {
-	    	placeInRandomSlot(w, x, y, z, new ItemStack(Items.iron_ingot, 20));
+    	ArrayList<ItemStack> randomLoot = lootGen.generateRandomItems(lootingLevel);
+    	for(ItemStack loot: randomLoot) {
+	    	placeInRandomSlot(w, x, y, z, loot);
     	}
     }
     
@@ -75,7 +85,6 @@ public class MobLoot
     	IInventory te = (IInventory) w.getTileEntity(x, y, z);
     	Random r = new Random();
     	int slot = r.nextInt(27);
-    	log.info("Placing "+is.getDisplayName()+" in slot "+slot);
     	if(te.getStackInSlot(slot)==null) {
     		te.setInventorySlotContents(r.nextInt(27), is);
     	} else {
@@ -129,7 +138,7 @@ public class MobLoot
     public void onDropsEvent(LivingDropsEvent event) {
     	event.setCanceled(true);
     	if(event.source.getEntity() instanceof EntityPlayer && event.entity instanceof EntityLiving) {
-    		this.spawnChest(event.entity.worldObj, event.entity.posX, event.entity.posY, event.entity.posZ, convertToItemStack(event.drops));
+    		this.spawnChest(event.entity.worldObj, event.entity.posX, event.entity.posY, event.entity.posZ, convertToItemStack(event.drops), event.lootingLevel);
     	}
     }
 }
