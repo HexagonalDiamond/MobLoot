@@ -47,6 +47,8 @@ public class MobLoot
     public static Logger log;
     @Instance(MODID)
     public static MobLoot instance;
+    @SidedProxy(modId=MODID, clientSide="com.julianscode.mobloot.ClientProxy")
+    public static CommonProxy proxy;
     public static MobLootConfigManager config;
     public static MobLootGenerator lootGen;
     @EventHandler
@@ -54,6 +56,7 @@ public class MobLoot
     	config = new MobLootConfigManager(event);
     	lootGen = new MobLootGenerator();
     	lootGen.loadFromConfig();
+    	proxy.registerConfigs();
     }
     
     @EventHandler
