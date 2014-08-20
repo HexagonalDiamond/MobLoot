@@ -4,6 +4,13 @@ import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.Vector;
+
+import com.julianscode.mobloot.blocks.MobLootBlocks;
+import com.julianscode.mobloot.gui.MobLootGuiHandler;
+import com.julianscode.mobloot.managers.MobLootConfigManager;
+import com.julianscode.mobloot.managers.MobLootGenerator;
+import com.julianscode.mobloot.proxies.CommonProxy;
+
 import scala.reflect.internal.Trees.This;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
@@ -35,6 +42,7 @@ import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.registry.EntityRegistry;
 
 @Mod(modid = MobLoot.MODID, version = MobLoot.VERSION)
@@ -42,24 +50,28 @@ public class MobLoot
 {
     public static final String MODID = "mobloot";
     public static final String VERSION = "1.0";
+    public static final int bagGuiID = 0;
     @Instance(MODID)
     public static MobLoot instance;
-    @SidedProxy(modId=MODID, clientSide="com.julianscode.mobloot.ClientProxy", serverSide="com.julianscode.mobloot.ServerProxy")
+    @SidedProxy(modId=MODID, clientSide="com.julianscode.mobloot.proxies.ClientProxy", serverSide="com.julianscode.mobloot.proxies.ServerProxy")
     public static CommonProxy proxy;
     public static MobLootConfigManager config;
     public static MobLootGenerator lootGen;
+    public static MobLootBlocks mobLootBlocks;
     @EventHandler
     public void preinit(FMLPreInitializationEvent event) throws MalformedURLException {
     	config = new MobLootConfigManager(event);
     	lootGen = new MobLootGenerator();
     	lootGen.loadFromConfig();
+    	mobLootBlocks = new MobLootBlocks();
+    	mobLootBlocks.registerAll();
     	proxy.registerConfigs();
     }
     
     @EventHandler
     public void init(FMLInitializationEvent event)
     {    	
-    	//initialize logger
+    	NetworkRegistry.INSTANCE.registerGuiHandler(this, new MobLootGuiHandler());
     	
     	//initialize event handler
     	MinecraftForge.EVENT_BUS.register(this);

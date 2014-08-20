@@ -1,4 +1,4 @@
-package com.julianscode.mobloot;
+package com.julianscode.mobloot.managers;
 
 import java.util.ArrayList;
 import java.util.HashMap;

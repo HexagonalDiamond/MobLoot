@@ -1,4 +1,5 @@
-package com.julianscode.mobloot;
+package com.julianscode.mobloot.proxies;
+
 
 
 public class ServerProxy extends CommonProxy {

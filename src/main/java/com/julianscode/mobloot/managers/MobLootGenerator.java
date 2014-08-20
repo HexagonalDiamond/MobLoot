@@ -1,8 +1,10 @@
-package com.julianscode.mobloot;
+package com.julianscode.mobloot.managers;
 
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Random;
+
+import com.julianscode.mobloot.MobLoot;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.item.ItemStack;

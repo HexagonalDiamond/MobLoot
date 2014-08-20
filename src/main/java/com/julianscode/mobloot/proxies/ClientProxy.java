@@ -1,4 +1,4 @@
-package com.julianscode.mobloot;
+package com.julianscode.mobloot.proxies;
 
 import java.net.MalformedURLException;
 import java.net.URL;
