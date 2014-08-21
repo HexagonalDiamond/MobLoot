@@ -1,8 +1,16 @@
 package com.julianscode.mobloot.tileentity;
 
+import com.julianscode.mobloot.MobLoot;
+
+import cpw.mods.fml.common.FMLLog;
+
+import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Blocks;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntityChest;
 
@@ -100,17 +108,66 @@ public class TileEntityBag extends TileEntity implements IInventory{
 	}
 
 	@Override
-	public void openInventory() {		
+	public void openInventory() {
 	}
 
 	@Override
 	public void closeInventory() {
+		FMLLog.info("bla"); 
+		if(this.isEmpty()) {
+			this.worldObj.setBlock(xCoord, yCoord, zCoord, Blocks.air);
+		}
 	}
-
+	
+	private boolean isEmpty() {
+		for(ItemStack is: this.contents) {
+			if(is == null) {
+				return false;
+			}
+		}
+		return true;
+	}
+	
 	@Override
 	public boolean isItemValidForSlot(int p_94041_1_, ItemStack p_94041_2_) {
-		// TODO Auto-generated method stub
-		return false;
+		return true;
 	}
+	@Override
+	public void writeToNBT(NBTTagCompound p_145841_1_)
+    {
+        super.writeToNBT(p_145841_1_);
+        NBTTagList nbttaglist = new NBTTagList();
 
+        for (int i = 0; i < this.contents.length; ++i)
+        {
+            if (this.contents[i] != null)
+            {
+                NBTTagCompound nbttagcompound1 = new NBTTagCompound();
+                nbttagcompound1.setByte("Slot", (byte)i);
+                this.contents[i].writeToNBT(nbttagcompound1);
+                nbttaglist.appendTag(nbttagcompound1);
+            }
+        }
+
+        p_145841_1_.setTag("Items", nbttaglist);
+    }
+	
+	@Override
+	public void readFromNBT(NBTTagCompound p_145839_1_)
+    {
+        super.readFromNBT(p_145839_1_);
+        NBTTagList nbttaglist = p_145839_1_.getTagList("Items", 10);
+        this.contents = new ItemStack[this.getSizeInventory()];
+
+        for (int i = 0; i < nbttaglist.tagCount(); ++i)
+        {
+            NBTTagCompound nbttagcompound1 = nbttaglist.getCompoundTagAt(i);
+            int j = nbttagcompound1.getByte("Slot") & 255;
+
+            if (j >= 0 && j < this.contents.length)
+            {
+                this.contents[j] = ItemStack.loadItemStackFromNBT(nbttagcompound1);
+            }
+        }
+    }
 }

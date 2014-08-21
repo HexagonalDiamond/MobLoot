@@ -10,6 +10,7 @@ import com.julianscode.mobloot.gui.MobLootGuiHandler;
 import com.julianscode.mobloot.managers.MobLootConfigManager;
 import com.julianscode.mobloot.managers.MobLootGenerator;
 import com.julianscode.mobloot.proxies.CommonProxy;
+import com.julianscode.mobloot.tileentity.TileEntityBag;
 
 import scala.reflect.internal.Trees.This;
 import net.minecraft.init.Blocks;
@@ -44,6 +45,7 @@ import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.registry.EntityRegistry;
+import cpw.mods.fml.common.registry.GameRegistry;
 
 @Mod(modid = MobLoot.MODID, version = MobLoot.VERSION)
 public class MobLoot
@@ -66,6 +68,7 @@ public class MobLoot
     	mobLootBlocks = new MobLootBlocks();
     	mobLootBlocks.registerAll();
     	proxy.registerConfigs();
+    	GameRegistry.registerTileEntity(TileEntityBag.class, "Bag");
     }
     
     @EventHandler
@@ -78,7 +81,7 @@ public class MobLoot
     }
     public static void spawnChest(World w, double x, double y, double z, ArrayList<ItemStack> arrayList, int lootingLevel) {
     	Vec3 block = findNearestOpenBlock(w, x, y, z, 5);
-    	w.setBlock((int)block.xCoord, (int)block.yCoord, (int)block.zCoord, Blocks.chest);
+    	w.setBlock((int)block.xCoord, (int)block.yCoord, (int)block.zCoord, mobLootBlocks.bag);
     	fillChestWithLoot(w, (int)block.xCoord, (int)block.yCoord, (int)block.zCoord, arrayList, lootingLevel);
     }
     
@@ -95,9 +98,9 @@ public class MobLoot
     public static void placeInRandomSlot(World w, int x, int y, int z, ItemStack is) {
     	IInventory te = (IInventory) w.getTileEntity(x, y, z);
     	Random r = new Random();
-    	int slot = r.nextInt(27);
+    	int slot = r.nextInt(9);
     	if(te.getStackInSlot(slot)==null) {
-    		te.setInventorySlotContents(r.nextInt(27), is);
+    		te.setInventorySlotContents(slot, is);
     	} else {
     		placeInRandomSlot(w, x, y, z, is);
     	}

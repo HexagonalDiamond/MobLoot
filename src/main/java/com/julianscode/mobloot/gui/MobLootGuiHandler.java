@@ -1,6 +1,7 @@
 package com.julianscode.mobloot.gui;
 
 import com.julianscode.mobloot.MobLoot;
+import com.julianscode.mobloot.container.ContainerBag;
 import com.julianscode.mobloot.tileentity.TileEntityBag;
 
 import net.minecraft.entity.player.EntityPlayer;
